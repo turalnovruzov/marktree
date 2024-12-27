@@ -21,7 +21,8 @@ def load_gitignore_patterns(gitignore_path):
 def gather_files_and_folders(root_path, spec=None, project_root=None):
     """
     Recursively gather all files and folders from root_path,
-    excluding those matched by the .gitignore spec if present.
+    excluding those matched by the .gitignore spec if present,
+    and explicitly excluding the .git directory.
     Returns a nested list/dict structure for the tree.
     
     Parameters:
@@ -41,6 +42,10 @@ def gather_files_and_folders(root_path, spec=None, project_root=None):
         return tree
 
     for entry in entries:
+        # **Exclude the `.git` directory explicitly**
+        if entry == '.git':
+            continue
+
         full_path = os.path.join(root_path, entry)
         
         # Calculate the relative path to the project root
