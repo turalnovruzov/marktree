@@ -18,12 +18,14 @@ MarkTree is a lightweight and intuitive tool for generating Markdown files from 
 ## 🛠️ Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/your-username/marktree.git
    cd marktree
    ```
 
 2. Install dependencies:
+
    ```bash
    pip install -r requirements.txt
    ```
@@ -33,6 +35,7 @@ MarkTree is a lightweight and intuitive tool for generating Markdown files from 
 ## ▶️ Usage
 
 1. Start the app:
+
    ```bash
    streamlit run app.py
    ```
@@ -74,14 +77,16 @@ src/
 
 The generated Markdown might look like this:
 
-``````markdown
+````markdown
 ## main.py
+
 ```python
 # Main script content here
 print("Hello, world!")
 ```
 
 ## helper.py
+
 ```python
 # Helper functions
 def greet(name):
@@ -89,11 +94,12 @@ def greet(name):
 ```
 
 ## constants.py
+
 ```python
 # Constants
 PI = 3.14159
 ```
-``````
+````
 
 ---
 
