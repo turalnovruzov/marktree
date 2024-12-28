@@ -79,23 +79,65 @@ def gather_files_and_folders(root_path, spec=None, project_root=None):
 
 def display_tree(tree, selected_paths, level=0):
     """
-    Recursively display the file/folder tree in Streamlit with indentation
-    and checkboxes for file selection.
+    Recursively display the file/folder tree in Streamlit with checkboxes for selection.
+    Selecting a folder automatically selects all files and subfolders inside it.
     """
     for item in tree:
         # Create an indented label for nesting
         indent = "&nbsp;" * (level * 4)  # Use HTML non-breaking spaces for indentation
+
         if item["type"] == "folder":
-            # Display folder name as bold text
-            st.markdown(f"{indent}**{item['name']}**", unsafe_allow_html=True)
-            # Recursively display its children with increased indentation
+            # Display folder name as bold text with a checkbox
+            col1, col2 = st.columns([0.1, 0.9])
+            with col1:
+                folder_checked = st.checkbox("", key=item["path"])
+            with col2:
+                st.markdown(f"{indent}**{item['name']}**", unsafe_allow_html=True)
+
+            if folder_checked:
+                # If the folder is checked, recursively add all its children
+                select_all_files(item, selected_paths)
+            else:
+                # If unchecked, ensure none of its children are selected
+                deselect_all_files(item, selected_paths)
+
+            # Display children with increased indentation
             display_tree(item["children"], selected_paths, level + 1)
+
         else:
-            # Display checkbox for files
-            label = f"{indent}{item['name']}"
-            checked = st.checkbox(label, key=item["path"])
-            if checked:
+            # Display file name with a checkbox
+            col1, col2 = st.columns([0.1, 0.9])
+            with col1:
+                file_checked = st.checkbox("", key=item["path"])
+            with col2:
+                st.markdown(f"{indent}{item['name']}", unsafe_allow_html=True)
+
+            if file_checked:
                 selected_paths.add(item["path"])
+            else:
+                selected_paths.discard(item["path"])
+
+
+def select_all_files(item, selected_paths):
+    """
+    Recursively select all files and folders within the given item.
+    """
+    if item["type"] == "file":
+        selected_paths.add(item["path"])
+    elif item["type"] == "folder":
+        for child in item["children"]:
+            select_all_files(child, selected_paths)
+
+
+def deselect_all_files(item, selected_paths):
+    """
+    Recursively deselect all files and folders within the given item.
+    """
+    if item["type"] == "file":
+        selected_paths.discard(item["path"])
+    elif item["type"] == "folder":
+        for child in item["children"]:
+            deselect_all_files(child, selected_paths)
 
 
 def generate_markdown(selected_paths):
