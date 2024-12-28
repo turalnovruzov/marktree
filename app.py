@@ -79,27 +79,20 @@ def gather_files_and_folders(root_path, spec=None, project_root=None):
 
 def display_tree(tree, selected_paths, level=0):
     """
-    Recursively display the file/folder tree in Streamlit with checkboxes.
-    Adds selected items to selected_paths set when checked.
-    Uses indentation for nested levels instead of nested expanders.
-
-    Parameters:
-    - tree: The nested list/dict structure representing the file tree.
-    - selected_paths: A set to collect selected file paths.
-    - level: Current depth level for indentation.
+    Recursively display the file/folder tree in Streamlit with indentation
+    and checkboxes for file selection.
     """
     for item in tree:
         # Create an indented label for nesting
-        indent = "  " * level
-        label = f"{indent}{item['name']}"
-
+        indent = "&nbsp;" * (level * 4)  # Use HTML non-breaking spaces for indentation
         if item["type"] == "folder":
             # Display folder name as bold text
-            st.markdown(f"**{label}**")
+            st.markdown(f"{indent}**{item['name']}**", unsafe_allow_html=True)
             # Recursively display its children with increased indentation
             display_tree(item["children"], selected_paths, level + 1)
         else:
             # Display checkbox for files
+            label = f"{indent}{item['name']}"
             checked = st.checkbox(label, key=item["path"])
             if checked:
                 selected_paths.add(item["path"])
