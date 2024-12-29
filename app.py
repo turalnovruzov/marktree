@@ -153,6 +153,10 @@ def generate_markdown(selected_paths, project_root):
     """
     md_content = []
     for path in sorted(selected_paths):
+        # Skip folders
+        if os.path.isdir(path):
+            continue
+
         # Compute the relative path for display
         rel_path = os.path.relpath(path, start=project_root)
 
