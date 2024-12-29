@@ -190,6 +190,14 @@ def main():
         if not tree:
             st.warning("No files or folders found to display.")
         else:
+            # Wrap it in a single "root" node
+            tree = [{
+                "path": project_path,
+                "name": ".",
+                "type": "folder",
+                "children": tree
+            }]
+
             # 4. Display the tree in checkboxes
             selected_paths = set()
             display_tree(tree, selected_paths)
