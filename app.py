@@ -77,61 +77,58 @@ def gather_files_and_folders(root_path, spec=None, project_root=None):
     return tree
 
 
-def display_tree(tree, selected_paths, level=0):
+def display_tree(tree, selected_paths, level=0, parent_selected=False):
     """
     Recursively display the file/folder tree in Streamlit with checkboxes for selection.
-    Selecting a folder automatically selects all files and subfolders inside it.
+    Selecting a folder automatically checks all files and subfolders inside it by default,
+    but the user can still manually uncheck them if desired.
+
+    :param tree: The nested list/dict structure for the tree (folders/files)
+    :param selected_paths: A set of file paths that the user has selected
+    :param level: Used for indentation to visually represent hierarchy
+    :param parent_selected: If True, all children inside this tree level
+                           will be checked by default (unless user unchecks them)
     """
     for item in tree:
         # Create an indented label for nesting
         indent = "&nbsp;" * (level * 8)  # Use HTML non-breaking spaces for indentation
 
-        if item["type"] == "folder":
-            # Checkbox for folder with emoji
-            folder_checked = st.checkbox(
-                f"{indent}📁 **{item['name']}**", key=item["path"]
-            )
-            if folder_checked:
-                # If the folder is checked, recursively add all its children
-                select_all_files(item, selected_paths)
-            else:
-                # If unchecked, ensure none of its children are selected
-                deselect_all_files(item, selected_paths)
+        # If the parent folder was selected, we want this item to appear checked by default
+        checked_by_default = parent_selected or (item["path"] in selected_paths)
 
-            # Display children with increased indentation
-            display_tree(item["children"], selected_paths, level + 1)
+        if item["type"] == "folder":
+            folder_checked = st.checkbox(
+                f"{indent}📁 **{item['name']}**", 
+                key=item["path"],
+                value=checked_by_default
+            )
+
+            if folder_checked:
+                selected_paths.add(item["path"])
+            else:
+                # If user unchecks this folder, remove it from selected_paths
+                selected_paths.discard(item["path"])
+
+            # If the folder is checked, we pass True as parent_selected to children
+            # so that by default, they come up as checked
+            display_tree(
+                tree=item["children"],
+                selected_paths=selected_paths,
+                level=level + 1,
+                parent_selected=folder_checked
+            )
 
         else:
-            # Checkbox for files with emoji
+            # It's a file
             file_checked = st.checkbox(
-                f"{indent}{item['name']}", key=item["path"]
+                f"{indent}{item['name']}",
+                key=item["path"],
+                value=checked_by_default
             )
             if file_checked:
                 selected_paths.add(item["path"])
             else:
                 selected_paths.discard(item["path"])
-
-
-def select_all_files(item, selected_paths):
-    """
-    Recursively select all files and folders within the given item.
-    """
-    if item["type"] == "file":
-        selected_paths.add(item["path"])
-    elif item["type"] == "folder":
-        for child in item["children"]:
-            select_all_files(child, selected_paths)
-
-
-def deselect_all_files(item, selected_paths):
-    """
-    Recursively deselect all files and folders within the given item.
-    """
-    if item["type"] == "file":
-        selected_paths.discard(item["path"])
-    elif item["type"] == "folder":
-        for child in item["children"]:
-            deselect_all_files(child, selected_paths)
 
 
 def generate_markdown(selected_paths):
