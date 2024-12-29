@@ -84,16 +84,13 @@ def display_tree(tree, selected_paths, level=0):
     """
     for item in tree:
         # Create an indented label for nesting
-        indent = "&nbsp;" * (level * 4)  # Use HTML non-breaking spaces for indentation
+        indent = "&nbsp;" * (level * 8)  # Use HTML non-breaking spaces for indentation
 
         if item["type"] == "folder":
-            # Display folder name as bold text with a checkbox
-            col1, col2 = st.columns([0.1, 0.9])
-            with col1:
-                folder_checked = st.checkbox("", key=item["path"])
-            with col2:
-                st.markdown(f"{indent}**{item['name']}**", unsafe_allow_html=True)
-
+            # Checkbox for folder with clickable label
+            folder_checked = st.checkbox(
+                f"{indent}**{item['name']}**", key=item["path"]
+            )
             if folder_checked:
                 # If the folder is checked, recursively add all its children
                 select_all_files(item, selected_paths)
@@ -105,13 +102,10 @@ def display_tree(tree, selected_paths, level=0):
             display_tree(item["children"], selected_paths, level + 1)
 
         else:
-            # Display file name with a checkbox
-            col1, col2 = st.columns([0.1, 0.9])
-            with col1:
-                file_checked = st.checkbox("", key=item["path"])
-            with col2:
-                st.markdown(f"{indent}{item['name']}", unsafe_allow_html=True)
-
+            # Checkbox for files with clickable label
+            file_checked = st.checkbox(
+                f"{indent}{item['name']}", key=item["path"]
+            )
             if file_checked:
                 selected_paths.add(item["path"])
             else:
