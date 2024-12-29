@@ -87,9 +87,9 @@ def display_tree(tree, selected_paths, level=0):
         indent = "&nbsp;" * (level * 8)  # Use HTML non-breaking spaces for indentation
 
         if item["type"] == "folder":
-            # Checkbox for folder with clickable label
+            # Checkbox for folder with emoji
             folder_checked = st.checkbox(
-                f"{indent}**{item['name']}**", key=item["path"]
+                f"{indent}📁 **{item['name']}**", key=item["path"]
             )
             if folder_checked:
                 # If the folder is checked, recursively add all its children
@@ -102,7 +102,7 @@ def display_tree(tree, selected_paths, level=0):
             display_tree(item["children"], selected_paths, level + 1)
 
         else:
-            # Checkbox for files with clickable label
+            # Checkbox for files with emoji
             file_checked = st.checkbox(
                 f"{indent}{item['name']}", key=item["path"]
             )
