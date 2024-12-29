@@ -54,10 +54,10 @@ def gather_files_and_folders(root_path, spec=None, project_root=None):
         rel_path = os.path.relpath(full_path, start=project_root)
 
         # Normalize path separators to '/' as PathSpec expects Unix-style paths
-        rel_path = rel_path.replace(os.path.sep, "/")
+        rel_path_unix = rel_path.replace(os.path.sep, "/")
 
         # If we have a spec and this path is ignored, skip it
-        if spec and spec.match_file(rel_path):
+        if spec and spec.match_file(rel_path_unix):
             continue
 
         if os.path.isdir(full_path):
@@ -67,13 +67,21 @@ def gather_files_and_folders(root_path, spec=None, project_root=None):
                 tree.append(
                     {
                         "path": full_path,
+                        "rel_path": rel_path,
                         "name": entry,
                         "type": "folder",
                         "children": subtree,
                     }
                 )
         else:
-            tree.append({"path": full_path, "name": entry, "type": "file"})
+            tree.append(
+                {
+                    "path": full_path,
+                    "rel_path": rel_path,
+                    "name": entry,
+                    "type": "file"
+                }
+            )
     return tree
 
 
@@ -98,7 +106,7 @@ def display_tree(tree, selected_paths, level=0, parent_selected=False):
 
         if item["type"] == "folder":
             folder_checked = st.checkbox(
-                f"{indent}📁 **{item['name']}**", 
+                f"{indent}📁 **{item['name']}**",
                 key=item["path"],
                 value=checked_by_default
             )
@@ -131,21 +139,30 @@ def display_tree(tree, selected_paths, level=0, parent_selected=False):
                 selected_paths.discard(item["path"])
 
 
-def generate_markdown(selected_paths):
+def generate_markdown(selected_paths, project_root):
     """
     Reads the content of the selected files and concatenates them into one
     Markdown string. You can customize formatting as needed.
 
     Parameters:
     - selected_paths: A set of file paths selected by the user.
+    - project_root: The root directory of the project. We use this to compute relative paths.
 
     Returns:
     - A string containing the combined Markdown content.
     """
     md_content = []
     for path in sorted(selected_paths):
-        # Append a heading with file name
-        md_content.append(f"## {os.path.basename(path)}\n")
+        # Skip folders
+        if os.path.isdir(path):
+            continue
+
+        # Compute the relative path for display
+        rel_path = os.path.relpath(path, start=project_root)
+
+        # Append a heading with the relative path
+        md_content.append(f"## {rel_path}\n")
+
         # Determine the language for syntax highlighting based on file extension
         _, ext = os.path.splitext(path)
         language = ext[1:] if ext else ""
@@ -180,9 +197,7 @@ def main():
         if spec:
             st.info("`.gitignore` patterns loaded and will be respected.")
         else:
-            st.warning(
-                "No `.gitignore` found or it's empty. All files will be included."
-            )
+            st.warning("No `.gitignore` found or it's empty. All files will be included.")
 
         # 3. Gather file tree
         tree = gather_files_and_folders(project_path, spec)
@@ -193,6 +208,7 @@ def main():
             # Wrap it in a single "root" node
             tree = [{
                 "path": project_path,
+                "rel_path": ".",
                 "name": ".",
                 "type": "folder",
                 "children": tree
@@ -209,8 +225,8 @@ def main():
                         "No files selected. Please select at least one file to generate Markdown."
                     )
                 else:
-                    # Generate the content
-                    result = generate_markdown(selected_paths)
+                    # Generate the content, passing the project root
+                    result = generate_markdown(selected_paths, project_path)
 
                     # 6. Save to a file (e.g., OUTPUT.md)
                     app_directory = os.path.dirname(os.path.abspath(__file__))
